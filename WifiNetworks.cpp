@@ -88,7 +88,7 @@ String WifiNetworks::renderSelectOptionsHtml() {
 String WifiNetworks::renderFormHtml() {
   String content =
     String("<p>Choose Wifi network</p>") +
-          "<form action='.' method='POST'>" +
+          "<form action='/wifi_networks/' method='POST'>" +
           "  <label for='ssid'><p>SSID</p></label>" +
           "  <select id='ssid' name='ssid'>" +
                   renderSelectOptionsHtml() +
