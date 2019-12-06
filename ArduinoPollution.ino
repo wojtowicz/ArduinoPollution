@@ -27,8 +27,16 @@ String password;
 boolean connectWifi = false;
 boolean wifiConnecting = false;
 static uint32_t timer;
-static uint32_t timer2;
-int a = 1;
+static uint32_t timerDefault;
+static uint32_t timerWebFetcher;
+
+boolean timerDefaultExceeded(){
+  return timer - timerDefault >= 5000;
+}
+
+boolean timerWebFetcherExceeded(){
+  return timer - timerWebFetcher >= 30000;
+}
 
 void handleRoot() {
   server.send(200, "text/html", wifiNetworks.renderFormHtml());
@@ -84,8 +92,7 @@ void handleWifiConnection(){
       displayMessageOnLCD("idle", 1);
     case WL_DISCONNECTED:
       displayMessageOnLCD("Wifi connecting.", 1);
-      if (millis() > timer) {
-        timer = millis() + 5000;
+      if (timerDefaultExceeded()) {
         Serial.println("[loop] no wifi");
       }
       break;
@@ -133,6 +140,7 @@ void setup() {
 }
 
 void loop() {
+  timer = millis();
   server.handleClient();
   
   if(connectWifi){
@@ -143,8 +151,7 @@ void loop() {
     wifiConnecting = true;
   }
 
-  if (millis() > timer) {
-    timer = millis() + 5000;
+  if (timerDefaultExceeded()) {
     Serial.println("WiFi.status");
     Serial.println(WiFi.status());
   }
@@ -157,8 +164,7 @@ void loop() {
     WiFiClient client;
     HTTPClient http;
 
-    if (millis() > timer) {
-      timer = millis() + 5000;
+    if (timerWebFetcherExceeded()) {
       Serial.println("[HTTP] begin...");
       if (http.begin(client, "http://tomash-arduino-api.herokuapp.com/pollution/measurements?lat=50.00983&lng=19.97484&fields[]=airly_caqi&fields[]=pm25&fields[]=pm10")) {
         Serial.print("[HTTP] GET...\n");
@@ -217,5 +223,13 @@ void loop() {
         Serial.printf("[HTTP} Unable to connect\n");
       }
     }
+  }
+  
+  if (timerDefaultExceeded()) {
+    timerDefault = timer;
+  }
+
+  if (timerWebFetcherExceeded()) {
+    timerWebFetcher = timer;
   }
 }
