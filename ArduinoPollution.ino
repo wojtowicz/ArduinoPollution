@@ -1,11 +1,10 @@
-#include <LiquidCrystal_PCF8574.h>
-#include <Wire.h>
-
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 
+#include "LCDMessage.h"
+#include "MyLCD.h"
 #include "WifiNetworks.h"
 
 #ifndef APSSID
@@ -19,7 +18,7 @@
 const char *apssid = APSSID;
 const String arduinoApiHost = "https://tomash-arduino-api.herokuapp.com";
 
-LiquidCrystal_PCF8574 lcd(0x27);
+MyLCD myLCD;
 ESP8266WebServer server(80);
 WifiNetworks wifiNetworks;
 
@@ -57,40 +56,32 @@ void startWifiAP() {
   connectWifi = false;
   wifiConnecting = false;
   WiFi.disconnect();
-  
-  Serial.print("Configuring access point...");
-  lcd.print("Configuring...");
+
+  myLCD.clear();
+  myLCD.display({ "Configuring", 0, 0, true, "Configuring access point..."});
   
   WiFi.softAP(apssid);
   
-  IPAddress myIP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(myIP);
-  lcd.home();
-  lcd.clear();
-  lcd.print(WiFi.softAPIP());
+  IPAddress softAPIP = WiFi.softAPIP();
+  myLCD.clear();
+  myLCD.display({ softAPIP.toString(), 0, 0, true, "AP IP: "});
 }
 
-void displayMessageOnLCD(String message, int line){
-  lcd.setCursor(0, line);
-  lcd.print(message);
+void displayMessageOnLCD(String message, int row){
+  myLCD.display({ message, 0, row, false, ""});
 }
 
 void displayWifiInfo() {
   wifiConnecting = false;
-  Serial.println("[loop] WiFi connected");
-  Serial.print("[loop] IP address: ");
-  Serial.println(WiFi.localIP());
-  lcd.home();
-  lcd.clear();
-  lcd.print(WiFi.localIP());
+  IPAddress localIp = WiFi.localIP();
+  myLCD.clear();
+  myLCD.display({ localIp.toString(), 0, 0, true, "IP address: "});
 }
 
 void handleWifiConnection(){
   switch(WiFi.status()) {
     case WL_IDLE_STATUS:
-      lcd.setCursor(0, 1);
-      lcd.print("idle");
+      displayMessageOnLCD("idle", 1);
     case WL_DISCONNECTED:
       displayMessageOnLCD("Wifi connecting.", 1);
       if (millis() > timer) {
@@ -125,24 +116,7 @@ void setup() {
   digitalWrite(LED_YELLOW, LOW);
   digitalWrite(LED_GREEN, LOW);
 
-  int error;
-  
-  Serial.println("Configuring LCD...");
-  Wire.begin();
-  Wire.beginTransmission(0x27);
-  error = Wire.endTransmission();
-  Serial.print("Error: ");
-  Serial.print(error);
-
-  if (error == 0) {
-    Serial.println(": LCD found.");
-    lcd.begin(16, 2);
-    lcd.setBacklight(255);
-    lcd.home();
-    lcd.clear();
-  } else {
-    Serial.println(": LCD not found.");
-  }
+  myLCD.configure();
 
   if(WiFi.status() == WL_CONNECTED) {
     displayWifiInfo();
@@ -213,11 +187,9 @@ void loop() {
             newString = newString.substring(pm10.length() + 1);
             Serial.println(payload);
 
-            lcd.begin(16, 2);
-            lcd.setCursor(0, 0);
-            lcd.print("PM2.5: " + pm25 + "%");
-            lcd.setCursor(0, 1);
-            lcd.print("PM10: " + pm10 + "%");
+            myLCD.clear();
+            myLCD.display({ "PM2.5: " + pm25 + "%", 0, 0, false, ""});
+            myLCD.display({ "PM10: " + pm10 + "%", 0, 1, false, ""});
 
             digitalWrite(LED_RED, LOW);
             digitalWrite(LED_YELLOW, LOW);
