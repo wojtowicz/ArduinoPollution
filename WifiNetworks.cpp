@@ -1,6 +1,6 @@
 #include <ESP8266WiFi.h>
 #include "WifiNetworks.h"
-#include "WifiNetwork.h"
+#include "WifiNetworkStruct.h"
 
 int32_t WifiNetworks::getSignalQuality(int32_t signalStrength) {
   int32_t signalQuality;
@@ -44,30 +44,30 @@ String WifiNetworks::getEncryptionType(uint8_t wifiEcryptionType) {
 
 int WifiNetworks::structCmpBySignalQuality(const void *a, const void *b)
 {
-  struct WifiNetwork *ia = (struct WifiNetwork *)a;
-  struct WifiNetwork *ib = (struct WifiNetwork *)b;
+  struct WifiNetworkStruct *ia = (struct WifiNetworkStruct *)a;
+  struct WifiNetworkStruct *ib = (struct WifiNetworkStruct *)b;
   return (int)(100.f*ib->signalQuality - 100.f*ia->signalQuality);
 }
 
-void WifiNetworks::buildWifiNetworks(struct WifiNetwork *wifiNetworks, int networksCount)
+void WifiNetworks::buildWifiNetworks(struct WifiNetworkStruct *wifiNetworks, int networksCount)
 {
   for(int i = 0; i < networksCount; i++) {
     int32_t signalQuality = getSignalQuality(WiFi.RSSI(i));
     String encryptionType = getEncryptionType(WiFi.encryptionType(i));
     String ssid = WiFi.SSID(i);
 
-    struct WifiNetwork wifiNetwork = { ssid, encryptionType, signalQuality };
+    struct WifiNetworkStruct wifiNetwork = { ssid, encryptionType, signalQuality };
     wifiNetworks[i] = wifiNetwork;
   }
 }
 
-void WifiNetworks::sortWifiNetworks(struct WifiNetwork *wifiNetworks, int networksCount)
+void WifiNetworks::sortWifiNetworks(struct WifiNetworkStruct *wifiNetworks, int networksCount)
 {
-  size_t structsLength = networksCount / sizeof(struct WifiNetwork);
-  qsort(wifiNetworks, networksCount, sizeof(struct WifiNetwork), structCmpBySignalQuality);
+  size_t structsLength = networksCount / sizeof(struct WifiNetworkStruct);
+  qsort(wifiNetworks, networksCount, sizeof(struct WifiNetworkStruct), structCmpBySignalQuality);
 }
 
-String WifiNetworks::getSelectOptionsHtml(struct WifiNetwork *wifiNetworks, int networksCount){
+String WifiNetworks::getSelectOptionsHtml(struct WifiNetworkStruct *wifiNetworks, int networksCount){
   String result = "";
   for(int i = 0; i < networksCount; i++) {
     result += "<option value='" + wifiNetworks[i].ssid + "'>" + wifiNetworks[i].ssid + " (" + wifiNetworks[i].encryptionType + ", " + wifiNetworks[i].signalQuality + "%)</option>";
@@ -77,7 +77,7 @@ String WifiNetworks::getSelectOptionsHtml(struct WifiNetwork *wifiNetworks, int 
 
 String WifiNetworks::renderSelectOptionsHtml() {
   int networksCount = WiFi.scanNetworks();
-  struct WifiNetwork wifiNetworks[networksCount];
+  struct WifiNetworkStruct wifiNetworks[networksCount];
   Serial.println(networksCount);
   
   buildWifiNetworks(wifiNetworks, networksCount);

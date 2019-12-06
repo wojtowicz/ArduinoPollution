@@ -1,4 +1,4 @@
-struct LCDMessage{
+struct LCDMessageStruct{
   String content;
   int col;
   int row;

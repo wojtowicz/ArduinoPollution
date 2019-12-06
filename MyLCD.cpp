@@ -1,7 +1,7 @@
 #include <LiquidCrystal_PCF8574.h>
 #include <Wire.h>
 
-#include "LCDMessage.h"
+#include "LCDMessageStruct.h"
 #include "MyLCD.h"
 
 LiquidCrystal_PCF8574 lcd(0x27);
@@ -31,7 +31,7 @@ void MyLCD::clear(){
   lcd.clear();
 }
 
-void MyLCD::display(LCDMessage lcdMessage) {
+void MyLCD::display(LCDMessageStruct lcdMessage) {
   if(lcdMessage.debug){
     Serial.print(lcdMessage.debugLabel);
     Serial.print(lcdMessage.content);

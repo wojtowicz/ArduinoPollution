@@ -5,6 +5,5 @@ class MyLCD {
     public:
       void configure();
       void clear();
-      void display(struct LCDMessage lcdMessage);
-      void displayWithDebug(struct LCDMessageWithDebug lcdMessage);
+      void display(struct LCDMessageStruct lcdMessage);
 };
