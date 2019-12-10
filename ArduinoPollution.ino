@@ -51,7 +51,6 @@ void setup() {
   server.on("/wifi_networks/", handleForm);
   server.begin();
   
-  
   Serial.println("HTTP server started");
 }
 

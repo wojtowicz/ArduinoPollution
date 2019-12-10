@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
 #include "WifiManager.h"
 
+#include "ConfigManager.h"
 #include "MyLCD.h"
 #include "LCDMessageStruct.h"
 
@@ -12,12 +13,9 @@ extern MyLCD myLCD;
 
 const char *apssid = APSSID;
 
-WifiManager::WifiManager() {
-  this->ssid = "";
-  this->password = "";
-  this->connectWifi = false;
-  this->wifiConnecting = false;
-}
+ConfigManager configManager = ConfigManager::getInstance();
+
+WifiManager::WifiManager() { }
 
 WifiManager& WifiManager::getInstance() {
   static WifiManager instance;
@@ -25,10 +23,20 @@ WifiManager& WifiManager::getInstance() {
 }
 
 void WifiManager::setup(){
-  if(WiFi.status() == WL_CONNECTED) {
-    displayWifiInfo();
+  configManager.load();
+  this->ssid = configManager.getSSID();
+  this->password = configManager.getPassword();
+  this->connectWifi = false;
+  this->wifiConnecting = false;
+
+  if(configManager.isDeviceConfigured()){
+    setConnectWifiToOn();
   } else {
-    startWifiAP();
+    if(WiFi.status() == WL_CONNECTED) {
+      displayWifiInfo();
+    } else {
+      startWifiAP();
+    }
   }
 }
 
@@ -124,6 +132,9 @@ void WifiManager::handleWifiConnection(){
       displayMessageOnLCD("Wrong password", 1);
       break;
     case WL_CONNECTED:
+      configManager.setSSID(getSSID());
+      configManager.setPassword(getPassword());
+      configManager.save();
       displayWifiInfo();
       displayMessageOnLCD("", 1);
       break;
