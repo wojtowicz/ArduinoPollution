@@ -2,6 +2,14 @@
 #include "WifiNetworks.h"
 #include "WifiNetworkStruct.h"
 
+void WifiNetworks::setCurrentSSID(String ssid) {
+  this->currentSSID = ssid;
+}
+
+bool WifiNetworks::hasCurrentSSID() {
+  return this->currentSSID != "";
+}
+
 int32_t WifiNetworks::getSignalQuality(int32_t signalStrength) {
   int32_t signalQuality;
 
@@ -85,10 +93,23 @@ String WifiNetworks::renderSelectOptionsHtml() {
   return getSelectOptionsHtml(wifiNetworks, networksCount);
 }
 
+String WifiNetworks::renderCurrentSSIDHtml() {
+  if(!hasCurrentSSID()) return String("");
+  String content =
+    String("<form action='/wifi_networks/disconnect' method='POST'>") +
+    "<p>Current SSID: " + 
+    this->currentSSID + 
+    "<input type='submit' value='Disconnect'/>" +
+    "</p>" +
+    "</form>";
+  return content;
+}
+
 String WifiNetworks::renderFormHtml() {
   String content =
-    String("<p>Choose Wifi network</p>") +
-          "<form action='/wifi_networks/' method='POST'>" +
+    String(renderCurrentSSIDHtml()) +
+          "<p>Choose Wifi network</p>" +
+          "<form action='/wifi_networks/connect' method='POST'>" +
           "  <label for='ssid'><p>SSID</p></label>" +
           "  <select id='ssid' name='ssid'>" +
                   renderSelectOptionsHtml() +

@@ -27,6 +27,7 @@ void WifiManager::setup(){
   this->ssid = configManager.getSSID();
   this->password = configManager.getPassword();
   this->connectWifi = false;
+  this->disconnectWifi = false;
   this->wifiConnecting = false;
 
   if(configManager.isDeviceConfigured()){
@@ -47,8 +48,23 @@ void WifiManager::connect(){
   setWifiConnectingToOn();
 }
 
+void WifiManager::disconnect(){
+  setSSID("");
+  setPassword("");
+  saveConfig();
+  setDisconnectWifiToOff();
+  startWifiAP();
+}
+
+void WifiManager::saveConfig(){
+  configManager.setSSID(getSSID());
+  configManager.setPassword(getPassword());
+  configManager.save();
+}
+
 void WifiManager::clear() {
   this->connectWifi = false;
+  this->disconnectWifi = false;
   this->wifiConnecting = false;
   WiFi.disconnect();
 }
@@ -68,8 +84,13 @@ void WifiManager::setSSID(String ssid) {
 void WifiManager::setPassword(String password) {
   this->password = password;
 }
+
 boolean WifiManager::isConnectWifi() {
   return this->connectWifi;
+}
+
+boolean WifiManager::isDisconnectWifi() {
+  return this->disconnectWifi;
 }
 
 boolean WifiManager::isWifiConnecting() {
@@ -82,6 +103,14 @@ void WifiManager::setConnectWifiToOn() {
 
 void WifiManager::setConnectWifiToOff() {
   this->connectWifi = false;
+}
+
+void WifiManager::setDisconnectWifiToOn() {
+  this->disconnectWifi = true;
+}
+
+void WifiManager::setDisconnectWifiToOff() {
+  this->disconnectWifi = false;
 }
 
 void WifiManager::setWifiConnectingToOn() {
@@ -114,6 +143,8 @@ void WifiManager::startWifiAP() {
   IPAddress softAPIP = WiFi.softAPIP();
   myLCD.clear();
   myLCD.display({ softAPIP.toString(), 0, 0, true, "AP IP: "});
+
+  
 }
 
 void WifiManager::handleWifiConnection(){
@@ -132,9 +163,7 @@ void WifiManager::handleWifiConnection(){
       displayMessageOnLCD("Wrong password", 1);
       break;
     case WL_CONNECTED:
-      configManager.setSSID(getSSID());
-      configManager.setPassword(getPassword());
-      configManager.save();
+      saveConfig();
       displayWifiInfo();
       displayMessageOnLCD("", 1);
       break;

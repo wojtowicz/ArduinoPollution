@@ -20,6 +20,10 @@ void PollutionService::setup(){
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_YELLOW, OUTPUT);
   pinMode(LED_GREEN, OUTPUT);
+  ledsOff();
+}
+
+void PollutionService::ledsOff() {
   digitalWrite(LED_RED, LOW);
   digitalWrite(LED_YELLOW, LOW);
   digitalWrite(LED_GREEN, LOW);
@@ -78,9 +82,7 @@ void PollutionService::displayOnLCD(){
 }
 
 void PollutionService::blinkLeds(){
-  digitalWrite(LED_RED, LOW);
-  digitalWrite(LED_YELLOW, LOW);
-  digitalWrite(LED_GREEN, LOW);
+  ledsOff();
   
   if(pollution.level == "1"){
     Serial.println("Level 1");
