@@ -1,4 +1,5 @@
 #include <ESP8266WiFi.h>
+#include <ArduinoJson.h>
 #include "WifiNetworks.h"
 #include "WifiNetworkStruct.h"
 
@@ -83,14 +84,35 @@ String WifiNetworks::getSelectOptionsHtml(struct WifiNetworkStruct *wifiNetworks
   return result;
 }
 
-String WifiNetworks::renderSelectOptionsHtml() {
+String WifiNetworks::getSelectOptionsJson(struct WifiNetworkStruct *wifiNetworks, int networksCount){
+  DynamicJsonDocument doc(2048);
+  String result = "";
+
+  for(int i = 0; i < networksCount; i++) {
+    JsonObject obj = doc.createNestedObject();
+    obj["ssid"] = wifiNetworks[i].ssid;
+    obj["encryption_type"] = wifiNetworks[i].encryptionType;
+    obj["signal_quality"] = wifiNetworks[i].signalQuality;
+  }
+  result = doc.as<String>();
+  return result;
+}
+
+String WifiNetworks::renderSelectOptions(String format) {
   int networksCount = WiFi.scanNetworks();
   struct WifiNetworkStruct wifiNetworks[networksCount];
   Serial.println(networksCount);
   
   buildWifiNetworks(wifiNetworks, networksCount);
   sortWifiNetworks(wifiNetworks, networksCount);
-  return getSelectOptionsHtml(wifiNetworks, networksCount);
+  String selectOptions = "";
+  if(format == "html"){
+    selectOptions = getSelectOptionsHtml(wifiNetworks, networksCount);
+  }
+  if (format == "json"){
+    selectOptions = getSelectOptionsJson(wifiNetworks, networksCount);
+  }
+  return selectOptions;
 }
 
 String WifiNetworks::renderCurrentSSIDHtml() {
@@ -112,7 +134,7 @@ String WifiNetworks::renderFormHtml() {
           "<form action='/wifi_networks/connect' method='POST'>" +
           "  <label for='ssid'><p>SSID</p></label>" +
           "  <select id='ssid' name='ssid'>" +
-                  renderSelectOptionsHtml() +
+                  renderSelectOptions("html") +
           "  </select>" +
           "  <label for='password'><p>Password</p></label>" +
           "  <p><input id='password' type='password' name='password'/></p>" +

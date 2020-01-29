@@ -1,7 +1,7 @@
 class PollutionService {
     public:
       void setup();
-      void fetch();
+      void fetch(String uuid);
       void ledsOff();
     private:
       void parse();

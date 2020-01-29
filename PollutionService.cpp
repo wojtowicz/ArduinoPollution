@@ -29,9 +29,10 @@ void PollutionService::ledsOff() {
   digitalWrite(LED_GREEN, LOW);
 }
 
-void PollutionService::fetch() {
+void PollutionService::fetch(String uuid) {
   Serial.println("[HTTP] begin...");
-  if (http.begin(client, "http://tomash-arduino-api.herokuapp.com/pollution/measurements?lat=50.00983&lng=19.97484&fields[]=airly_caqi&fields[]=pm25&fields[]=pm10")) {
+  String url = "http://tomash-arduino-api.herokuapp.com/devices/" + uuid + "/pollution/measurements.txt?lat=50.00983&lng=19.97484&fields[]=airly_caqi&fields[]=pm25%25&fields[]=pm10%25";
+  if (http.begin(client, url)) {
     Serial.print("[HTTP] GET...\n");
     int httpCode = http.GET();
     if (httpCode > 0) {

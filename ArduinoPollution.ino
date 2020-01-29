@@ -18,6 +18,8 @@ PollutionService pollutionService;
 ESP8266WebServer server(80);
 WifiNetworks wifiNetworks;
 
+String uuid;
+
 void handleRoot() {
   wifiNetworks.setCurrentSSID(wifiManager.getSSID());
   server.send(200, "text/html", wifiNetworks.renderFormHtml());
@@ -71,9 +73,29 @@ void handleDisconnectForm() {
   }
 }
 
+void handleWifiNetworks() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.sendHeader("Access-Control-Allow-Headers", "origin, content-type, accept");
+  server.send(200, "application/json", wifiNetworks.renderSelectOptions("json"));
+}
+
+void handleInfo() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.sendHeader("Access-Control-Allow-Headers", "origin, content-type, accept");
+  DynamicJsonDocument doc(2048);
+  String macAddress = WiFi.macAddress();
+  doc["mac_address"] = macAddress;
+  doc["chip_id"] = uuid;
+  String infoJson = doc.as<String>();
+  
+  server.send(200, "application/json", infoJson);
+}
+
 void setup() {
   delay(1000);
   Serial.begin(9600);
+
+  uuid = system_get_chip_id();
 
   pollutionService.setup();
   myLCD.configure();
@@ -82,6 +104,8 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/wifi_networks/connect", handleForm);
   server.on("/wifi_networks/disconnect", handleDisconnectForm);
+  server.on("/wifi_networks", handleWifiNetworks);
+  server.on("/info", handleInfo);
   server.begin();
   
   Serial.println("HTTP server started");
@@ -113,7 +137,7 @@ void loop() {
 
   if(WiFi.status() == WL_CONNECTED){
     if (timerManager.isTimerWebFetcherExceeded()) {
-      pollutionService.fetch();
+      pollutionService.fetch(uuid);
     }
   }
   
