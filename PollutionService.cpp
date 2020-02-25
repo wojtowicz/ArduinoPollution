@@ -31,24 +31,27 @@ void PollutionService::ledsOff() {
 
 void PollutionService::fetch(String uuid) {
   Serial.println("[HTTP] begin...");
-  String url = "http://tomash-arduino-api.herokuapp.com/devices/" + uuid + "/pollution/measurements.txt?lat=50.00983&lng=19.97484&fields[]=airly_caqi&fields[]=pm25%25&fields[]=pm10%25";
+  String url = "http://tomash-arduino-api.herokuapp.com/devices/" + uuid + "/pollution/measurements.txt?fields[]=airly_caqi&fields[]=pm25%25&fields[]=pm10%25";
   if (http.begin(client, url)) {
     Serial.print("[HTTP] GET...\n");
     int httpCode = http.GET();
     if (httpCode > 0) {
       Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
-
+      if (httpCode == HTTP_CODE_OK) {
         parse();
         displayOnLCD();
         blinkLeds();
       }
     } else {
+      ledsOff();
+      displayConfigureErrorOnLCD();
       Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
 
     http.end();
   } else {
+    ledsOff();
+    displayNetworkErrorOnLCD();
     Serial.printf("[HTTP} Unable to connect\n");
   }
 }
@@ -80,6 +83,17 @@ void PollutionService::displayOnLCD(){
   myLCD.clear();
   myLCD.display({ "PM2.5: " + pollution.pm25 + "%", 0, 0, false, ""});
   myLCD.display({ "PM10: " + pollution.pm10 + "%", 0, 1, false, ""});
+}
+
+void PollutionService::displayConfigureErrorOnLCD(){
+  myLCD.clear();
+  myLCD.display({ "Please configure using app", 0, 0, false, ""});
+  myLCD.display({ "using app", 0, 1, false, ""});
+}
+
+void PollutionService::displayNetworkErrorOnLCD(){
+  myLCD.clear();
+  myLCD.display({ "Network error", 0, 0, false, ""});
 }
 
 void PollutionService::blinkLeds(){

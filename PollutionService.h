@@ -6,5 +6,7 @@ class PollutionService {
     private:
       void parse();
       void displayOnLCD();
+      void displayConfigureErrorOnLCD();
+      void displayNetworkErrorOnLCD();
       void blinkLeds();
 };

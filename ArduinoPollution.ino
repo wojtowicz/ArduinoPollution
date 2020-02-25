@@ -10,6 +10,7 @@
 #include "MyLCD.h"
 #include "PollutionService.h"
 #include "WifiNetworks.h"
+#include "DeviceService.h"
 
 TimerManager timerManager = TimerManager::getInstance();
 WifiManager wifiManager = WifiManager::getInstance();
@@ -17,8 +18,10 @@ MyLCD myLCD;
 PollutionService pollutionService;
 ESP8266WebServer server(80);
 WifiNetworks wifiNetworks;
+DeviceService deviceService;
 
 String uuid;
+boolean syncLocalIp = true;
 
 void handleRoot() {
   wifiNetworks.setCurrentSSID(wifiManager.getSSID());
@@ -64,12 +67,16 @@ void handleForm() {
 }
 
 void handleDisconnectForm() {
-  if (server.method() != HTTP_POST) {
-    server.send(405, "text/plain", "Method Not Allowed");
-  } else {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.sendHeader("Access-Control-Allow-Headers", "origin, content-type, accept");
+  if (server.method() == HTTP_POST) {
     String message = "<p>Disconnected<a href='/'>Back</a><p>";
     server.send(200, "text/html", message);
     wifiManager.setDisconnectWifiToOn();
+  } else if (server.method() == HTTP_OPTIONS){
+    server.send(200, "text/plain", "");
+  } else {
+    server.send(405, "text/plain", "Method Not Allowed");
   }
 }
 
@@ -124,6 +131,7 @@ void loop() {
     delay(1000);
     wifiManager.disconnect();
     pollutionService.ledsOff();
+    syncLocalIp = true;
   }
 
   if (timerManager.isTimerDefaultExceeded()) {
@@ -138,6 +146,10 @@ void loop() {
   if(WiFi.status() == WL_CONNECTED){
     if (timerManager.isTimerWebFetcherExceeded()) {
       pollutionService.fetch(uuid);
+    }
+    if (syncLocalIp) {
+      deviceService.sendLocalIp(uuid, WiFi.localIP());
+      syncLocalIp = true;
     }
   }
   
