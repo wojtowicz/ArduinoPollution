@@ -8,7 +8,7 @@ extern HTTPClient http;
 
 void DeviceService::sendLocalIp(String uuid, IPAddress localIp) {
   Serial.println("[HTTP] begin...");
-  String url = "http://tomash-arduino-api.herokuapp.com/devices/" + uuid + ".json";
+  String url = "http://tomash-arduino-api.fly.dev/devices/" + uuid + ".json";
   http.begin(client, url);
   http.addHeader("Content-Type", "application/json");
   Serial.println("[HTTP] PUT...");

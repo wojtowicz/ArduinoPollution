@@ -31,7 +31,7 @@ void PollutionService::ledsOff() {
 
 void PollutionService::fetch(String uuid) {
   Serial.println("[HTTP] begin...");
-  String url = "http://tomash-arduino-api.herokuapp.com/devices/" + uuid + "/pollution/measurements.txt?fields[]=airly_caqi&fields[]=pm25%25&fields[]=pm10%25";
+  String url = "http://tomash-arduino-api.fly.dev/devices/" + uuid + "/pollution/measurements.txt?fields[]=airly_caqi&fields[]=pm25%25&fields[]=pm10%25";
   if (http.begin(client, url)) {
     Serial.print("[HTTP] GET...\n");
     int httpCode = http.GET();
