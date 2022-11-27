@@ -149,7 +149,7 @@ void loop() {
     }
     if (syncLocalIp) {
       deviceService.sendLocalIp(uuid, WiFi.localIP());
-      syncLocalIp = true;
+      syncLocalIp = false;
     }
   }
   
